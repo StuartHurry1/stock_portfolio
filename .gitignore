@@ -1,0 +1,12 @@
+# Ignore system & personal files
+.DS_Store
+Thumbs.db
+Application Data/
+Local Settings/
+My Documents/
+Documents/My Music/
+Documents/My Pictures/
+Documents/My Videos/
+*.log
+*.exe
+*.dat
