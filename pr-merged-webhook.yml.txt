@@ -1,0 +1,17 @@
+name: Trigger Zapier Webhook on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed  # Runs when a PR is closed (merged or not)
+
+jobs:
+  notify_zapier:
+    if: github.event.pull_request.merged == true  # Only run if PR is merged
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Webhook to Zapier
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{"repo":"${{ github.repository }}", "pr_title":"${{ github.event.pull_request.title }}", "pr_url":"${{ github.event.pull_request.html_url }}"}' \
+          ${{ secrets.ZAPIER_WEBHOOK_URL }}
