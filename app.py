@@ -1,75 +1,55 @@
 import os
+import requests
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+from dotenv import load_dotenv
 
-# Initialize Flask app
-app = Flask(__name__)
+# Load environment variables
+load_dotenv()
 
-# Configure the database - Uses Heroku DATABASE_URL if available, else falls back to local PostgreSQL
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:Blue1234%21@localhost/stock_portfolio')
+app = Flask(__name__)  # Define Flask app instance only once
+CORS(app)  # Apply CORS to allow frontend connections
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Supabase API Configuration
+SUPABASE_URL = "https://jnlfelelukyytqsxsfxy.supabase.co/rest/v1/"
+SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY")  # Corrected retrieval
 
-# Initialize SQLAlchemy
-db = SQLAlchemy(app)
+HEADERS = {
+    "apikey": SUPABASE_API_KEY,
+    "Authorization": f"Bearer {SUPABASE_API_KEY}",
+    "Content-Type": "application/json"
+}
 
-# Database models
-class Stock(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    ticker = db.Column(db.String(10), nullable=False)
-    purchase_date = db.Column(db.Date, nullable=True)
-    shares = db.Column(db.Integer, nullable=False)
-    cost_per_share = db.Column(db.Float, nullable=False)
-    fees = db.Column(db.Float, nullable=True)
-
-    def as_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "ticker": self.ticker,
-            "purchase_date": self.purchase_date,
-            "shares": self.shares,
-            "cost_per_share": self.cost_per_share,
-            "fees": self.fees,
-        }
-
-# Home route (Health check)
+# Home Route (to check if server is running)
 @app.route('/')
 def home():
-    return "Stock Website API is running successfully!"
+    return "Flask server is running!"
 
-# API Routes
+# Fetch all portfolio stocks
 @app.route('/api/portfolio', methods=['GET'])
 def get_portfolio():
-    try:
-        stocks = Stock.query.all()
-        return jsonify([stock.as_dict() for stock in stocks])
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    response = requests.get(f"{SUPABASE_URL}portfolio", headers=HEADERS)
+    return jsonify(response.json()), response.status_code
 
+# Add a new stock to portfolio
 @app.route('/api/portfolio', methods=['POST'])
 def add_stock():
     data = request.json
-    try:
-        stock = Stock(**data)
-        db.session.add(stock)
-        db.session.commit()
-        return jsonify({"message": "Stock added successfully!"}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+    response = requests.post(f"{SUPABASE_URL}portfolio", headers=HEADERS, json=data)
+    return jsonify(response.json()), response.status_code
 
-# Database Initialization Route
-@app.route('/api/init-db', methods=['POST'])
-def init_db():
-    try:
-        db.create_all()
-        return jsonify({"message": "Database tables created successfully!"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# Fetch all dividends
+@app.route('/api/dividends', methods=['GET'])
+def get_dividends():
+    response = requests.get(f"{SUPABASE_URL}dividends", headers=HEADERS)
+    return jsonify(response.json()), response.status_code
 
-# Run the app
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+# Add a new dividend entry
+@app.route('/api/dividends', methods=['POST'])
+def add_dividend():
+    data = request.json
+    response = requests.post(f"{SUPABASE_URL}dividends", headers=HEADERS, json=data)
+    return jsonify(response.json()), response.status_code
+
+if __name__ == "__main__":
+    app.run(debug=True)
