@@ -1,0 +1,1 @@
+heroku config:set DATABASE_URL="postgresql://postgres:<4C#N2scL2JK-zu4>@db.jnlfelelukyytqsxsfxy.supabase.co:5432/postgres" --app stock-portfolio-backend
