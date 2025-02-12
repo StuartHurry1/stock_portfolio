@@ -1,0 +1,5 @@
+home = C:\Users\stuar\AppData\Local\Programs\Python\Python311
+include-system-site-packages = false
+version = 3.11.5
+executable = C:\Users\stuar\AppData\Local\Programs\Python\Python311\python.exe
+command = C:\Users\stuar\AppData\Local\Programs\Python\Python311\python.exe -m venv C:\Users\stuar\myproject\myproject\Stock Website\Stock Website Directory\Backend\venv
